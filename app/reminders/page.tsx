@@ -1,1 +1,0 @@
-﻿export default function RemindersPage() { return <div className="p-2"><h1 className="text-2xl font-semibold text-slate-100">Reminders</h1></div>; }
