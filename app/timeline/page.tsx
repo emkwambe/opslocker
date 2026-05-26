@@ -1,0 +1,1 @@
+﻿export default function TimelinePage() { return <div className="p-2"><h1 className="text-2xl font-semibold text-slate-100">Timeline</h1></div>; }

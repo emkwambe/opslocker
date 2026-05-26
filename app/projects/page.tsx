@@ -1,0 +1,1 @@
+﻿export default function ProjectsPage() { return <div className="p-2"><h1 className="text-2xl font-semibold text-slate-100">Projects</h1></div>; }
