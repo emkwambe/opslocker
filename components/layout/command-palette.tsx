@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -25,6 +25,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
+import { DialogTitle } from "@/components/ui/dialog";
 import { useUIStore } from "@/store";
 
 type Resource = { id: string; name: string; vendorName: string | null };
@@ -91,7 +92,8 @@ export function CommandPalette({ resources }: Props) {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput
+    <DialogTitle className="sr-only">Command palette</DialogTitle>
+    <CommandInput
         placeholder="Type a command or search resources…"
         value={search}
         onValueChange={setSearch}
