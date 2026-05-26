@@ -32,7 +32,7 @@ export default async function SearchPage() {
         </p>
         <h1 className="text-2xl font-semibold text-slate-100 mt-1">Search</h1>
         <p className="text-sm text-slate-400 mt-1.5">
-          Find resources across vendors, owners, projects, and operational notes.
+          Operational search — find resources across vendors, owners, projects, and notes.
         </p>
       </div>
 

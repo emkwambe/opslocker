@@ -161,7 +161,7 @@ export function RemindersView({ workspaceId, initialReminders, resources }: Prop
           )}
         </Button>
         <Button onClick={() => setCreateOpen(true)}>
-          <PlusCircle className="w-4 h-4" /> New reminder
+          <PlusCircle className="w-4 h-4" /> Add reminder
         </Button>
       </div>
 
@@ -205,7 +205,7 @@ export function RemindersView({ workspaceId, initialReminders, resources }: Prop
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="max-w-lg bg-[#111318] border-[#1e2028]">
           <DialogHeader>
-            <DialogTitle>New reminder</DialogTitle>
+            <DialogTitle>Add reminder</DialogTitle>
             <DialogDescription>
               Surface renewals, ownership checks, or lifecycle reviews before they slip.
             </DialogDescription>
@@ -482,7 +482,7 @@ function CreateReminderForm({
         </Button>
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-          {isSubmitting ? "Saving" : "Create reminder"}
+          {isSubmitting ? "Saving" : "Add reminder"}
         </Button>
       </div>
     </form>
@@ -502,7 +502,7 @@ function GlobalEmptyState({ onCreate }: { onCreate: () => void }) {
       </p>
       <div className="mt-6">
         <Button onClick={onCreate}>
-          <PlusCircle className="w-4 h-4" /> Create your first reminder
+          <PlusCircle className="w-4 h-4" /> Add your first reminder
         </Button>
       </div>
     </div>

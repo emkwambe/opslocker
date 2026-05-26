@@ -6,6 +6,8 @@ import {
   AlertTriangle,
   CalendarClock,
   PlusCircle,
+  DollarSign,
+  ArrowUpRight,
 } from "lucide-react";
 import {
   getDashboardMetrics,
@@ -16,6 +18,8 @@ import {
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { RenewalRiskPanel } from "@/components/dashboard/renewal-risk-panel";
 import { RecentActivityFeed } from "@/components/dashboard/recent-activity-feed";
+import { QuickActions } from "@/components/dashboard/quick-actions";
+import { LastUpdated } from "@/components/dashboard/last-updated";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 
@@ -32,6 +36,7 @@ export default async function DashboardPage() {
   ]);
 
   const empty = metrics.totalResources === 0;
+  const renderedAt = Date.now();
 
   return (
     <div className="space-y-6 max-w-7xl">
@@ -44,12 +49,15 @@ export default async function DashboardPage() {
             Operational Overview
           </h1>
           <p className="text-sm text-slate-400 mt-1.5">
-            Infrastructure and operational memory at a glance.
+            Infrastructure and operational memory — what you run, who owns it, what&apos;s at risk.
           </p>
+          <div className="mt-2">
+            <LastUpdated timestampMs={renderedAt} />
+          </div>
         </div>
         <Button asChild>
           <Link href="/registry">
-            <PlusCircle className="w-4 h-4" /> Add resource
+            <PlusCircle className="w-4 h-4" /> Create resource
           </Link>
         </Button>
       </div>
@@ -58,19 +66,28 @@ export default async function DashboardPage() {
         <EmptyDashboard />
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <MetricCard
               label="Total resources"
               value={metrics.totalResources}
-              hint={`${formatCurrency(metrics.monthlySpend)}/mo tracked spend`}
+              hint={`${Math.round(
+                (metrics.activeResources / Math.max(metrics.totalResources, 1)) * 100
+              )}% active`}
               icon={Database}
+            />
+            <MetricCard
+              label="Monthly spend"
+              value={formatCurrency(metrics.monthlySpend, metrics.currency)}
+              hint={`${formatCurrency(
+                metrics.monthlySpend * 12,
+                metrics.currency
+              )} projected/yr`}
+              icon={DollarSign}
             />
             <MetricCard
               label="Active"
               value={metrics.activeResources}
-              hint={`${Math.round(
-                (metrics.activeResources / Math.max(metrics.totalResources, 1)) * 100
-              )}% of inventory`}
+              hint="Operationally relied on"
               icon={ShieldCheck}
               tone="positive"
             />
@@ -89,6 +106,32 @@ export default async function DashboardPage() {
               tone={metrics.upcomingRenewals > 0 ? "warning" : "default"}
             />
           </div>
+
+          {metrics.wasteSignalsCount > 0 && (
+            <Link
+              href="/finances"
+              className="block rounded-lg border border-amber-500/30 bg-amber-500/[0.06] px-4 py-3 animate-amber-pulse hover:animate-none hover:bg-amber-500/[0.1] hover:border-amber-500/50 transition-colors"
+            >
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2.5">
+                  <AlertTriangle className="w-4 h-4 text-amber-400" />
+                  <span className="text-sm text-amber-200">
+                    <span className="font-semibold text-amber-100">
+                      {metrics.wasteSignalsCount} waste signal
+                      {metrics.wasteSignalsCount === 1 ? "" : "s"}
+                    </span>{" "}
+                    detected — {formatCurrency(metrics.wasteAnnualEstimate, metrics.currency)}
+                    /yr at risk in deprecated or archived resources still billing.
+                  </span>
+                </div>
+                <span className="text-xs text-amber-200 inline-flex items-center gap-1">
+                  Review in Finances <ArrowUpRight className="w-3 h-3" />
+                </span>
+              </div>
+            </Link>
+          )}
+
+          <QuickActions />
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
             <div className="lg:col-span-3">
@@ -120,7 +163,7 @@ function EmptyDashboard() {
       <div className="mt-6 flex items-center justify-center gap-3">
         <Button asChild>
           <Link href="/registry">
-            <PlusCircle className="w-4 h-4" /> Add your first resource
+            <PlusCircle className="w-4 h-4" /> Create your first resource
           </Link>
         </Button>
         <Button asChild variant="outline">

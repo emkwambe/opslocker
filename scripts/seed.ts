@@ -389,32 +389,37 @@ async function main() {
   ]);
 
   console.log("Inserting sample invoices…");
+  function monthsAgo(months: number, day = 8): string {
+    const d = new Date(now.getFullYear(), now.getMonth() - months, day);
+    return d.toISOString().slice(0, 10);
+  }
+  function periodMonthsAgo(months: number): string {
+    const d = new Date(now.getFullYear(), now.getMonth() - months, 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  }
+
   await db.insert(invoices).values([
-    {
-      resourceId: byName["OpenAI Platform"].id,
-      vendor: "OpenAI",
-      amount: 382.14,
-      currency: "USD",
-      billingPeriod: "2026-04",
-      invoiceDate: addDays(now, -12),
-      notes: "April usage — embeddings + GPT-4o",
-    },
-    {
-      resourceId: byName["Supabase"].id,
-      vendor: "Supabase",
-      amount: 25,
-      currency: "USD",
-      billingPeriod: "2026-04",
-      invoiceDate: addDays(now, -8),
-    },
-    {
-      resourceId: byName["Vercel Pro"].id,
-      vendor: "Vercel",
-      amount: 20,
-      currency: "USD",
-      billingPeriod: "2026-04",
-      invoiceDate: addDays(now, -25),
-    },
+    // OpenAI — usage climbing
+    { resourceId: byName["OpenAI Platform"].id, vendor: "OpenAI", amount: 215.4, currency: "USD", billingPeriod: periodMonthsAgo(5), invoiceDate: monthsAgo(5) },
+    { resourceId: byName["OpenAI Platform"].id, vendor: "OpenAI", amount: 248.92, currency: "USD", billingPeriod: periodMonthsAgo(4), invoiceDate: monthsAgo(4) },
+    { resourceId: byName["OpenAI Platform"].id, vendor: "OpenAI", amount: 291.07, currency: "USD", billingPeriod: periodMonthsAgo(3), invoiceDate: monthsAgo(3) },
+    { resourceId: byName["OpenAI Platform"].id, vendor: "OpenAI", amount: 332.58, currency: "USD", billingPeriod: periodMonthsAgo(2), invoiceDate: monthsAgo(2) },
+    { resourceId: byName["OpenAI Platform"].id, vendor: "OpenAI", amount: 382.14, currency: "USD", billingPeriod: periodMonthsAgo(1), invoiceDate: monthsAgo(1), notes: "Embeddings + GPT-4o" },
+
+    // Supabase — flat $25/mo
+    { resourceId: byName["Supabase"].id, vendor: "Supabase", amount: 25, currency: "USD", billingPeriod: periodMonthsAgo(4), invoiceDate: monthsAgo(4, 14) },
+    { resourceId: byName["Supabase"].id, vendor: "Supabase", amount: 25, currency: "USD", billingPeriod: periodMonthsAgo(3), invoiceDate: monthsAgo(3, 14) },
+    { resourceId: byName["Supabase"].id, vendor: "Supabase", amount: 25, currency: "USD", billingPeriod: periodMonthsAgo(2), invoiceDate: monthsAgo(2, 14) },
+    { resourceId: byName["Supabase"].id, vendor: "Supabase", amount: 25, currency: "USD", billingPeriod: periodMonthsAgo(1), invoiceDate: monthsAgo(1, 14) },
+
+    // Vercel — bumped up two months ago
+    { resourceId: byName["Vercel Pro"].id, vendor: "Vercel", amount: 20, currency: "USD", billingPeriod: periodMonthsAgo(3), invoiceDate: monthsAgo(3, 22) },
+    { resourceId: byName["Vercel Pro"].id, vendor: "Vercel", amount: 20, currency: "USD", billingPeriod: periodMonthsAgo(2), invoiceDate: monthsAgo(2, 22) },
+    { resourceId: byName["Vercel Pro"].id, vendor: "Vercel", amount: 35, currency: "USD", billingPeriod: periodMonthsAgo(1), invoiceDate: monthsAgo(1, 22), notes: "Plan upgraded mid-cycle" },
+
+    // Datadog Lite — being phased out
+    { resourceId: byName["Datadog Lite"].id, vendor: "Datadog", amount: 31, currency: "USD", billingPeriod: periodMonthsAgo(2), invoiceDate: monthsAgo(2, 5) },
+    { resourceId: byName["Datadog Lite"].id, vendor: "Datadog", amount: 31, currency: "USD", billingPeriod: periodMonthsAgo(1), invoiceDate: monthsAgo(1, 5) },
   ]);
 
   console.log("Seed complete.");

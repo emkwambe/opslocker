@@ -34,7 +34,7 @@ type Props = {
   workspaceId: string;
   projects: { id: string; name: string }[];
   onClose: () => void;
-  onMutated: () => void;
+  onMutated: (updated: Resource) => void;
   onDeleted: () => void;
 };
 
@@ -181,7 +181,7 @@ export function ResourceDetailSheet({
                       setResource(updated);
                       setEditing(false);
                       setRefetchKey((k) => k + 1);
-                      onMutated();
+                      onMutated(updated);
                     }}
                     onCancel={() => setEditing(false)}
                   />

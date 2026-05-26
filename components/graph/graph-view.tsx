@@ -262,6 +262,7 @@ function GraphCanvas({ workspaceId, resources, relationships, projects }: Props)
           setSelectedId(null);
           router.refresh();
         }}
+        // graph relies on relationships, so a full refresh is appropriate after edits
       />
     </>
   );

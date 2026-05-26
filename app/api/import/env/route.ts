@@ -10,9 +10,9 @@ const bodySchema = z.object({
   workspaceId: z.string().min(1),
 });
 
-export type EnvParseResult = { keys: string[]; skipped: number };
+type EnvParseResult = { keys: string[]; skipped: number };
 
-export function parseEnv(content: string): EnvParseResult {
+function parseEnv(content: string): EnvParseResult {
   const lines = content.replace(/\r\n/g, "\n").split("\n");
   const keys: string[] = [];
   let skipped = 0;

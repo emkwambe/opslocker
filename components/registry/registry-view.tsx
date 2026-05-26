@@ -53,13 +53,24 @@ type Props = {
 
 const ALL = "__all__";
 
-export function RegistryView({ workspaceId, resources, projects, scopedProjectId }: Props) {
+export function RegistryView({
+  workspaceId,
+  resources: initialResources,
+  projects,
+  scopedProjectId,
+}: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const deepLinkedId = searchParams.get("resourceId");
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(deepLinkedId);
+  const [resources, setResources] = useState(initialResources);
+
+  // Sync local state when the server props change (e.g. after router.refresh())
+  useEffect(() => {
+    setResources(initialResources);
+  }, [initialResources]);
 
   useEffect(() => {
     if (deepLinkedId && deepLinkedId !== selectedId) {
@@ -208,11 +219,14 @@ export function RegistryView({ workspaceId, resources, projects, scopedProjectId
     router.refresh();
   };
 
-  const onMutated = () => {
-    router.refresh();
+  const onMutated = (updated: Resource) => {
+    setResources((rs) => rs.map((r) => (r.id === updated.id ? updated : r)));
   };
 
   const onDeleted = () => {
+    if (selectedId) {
+      setResources((rs) => rs.filter((r) => r.id !== selectedId));
+    }
     closeDrawer();
     router.refresh();
   };
@@ -275,7 +289,7 @@ export function RegistryView({ workspaceId, resources, projects, scopedProjectId
           <Upload className="w-4 h-4" /> Import
         </Button>
         <Button onClick={() => setCreateOpen(true)}>
-          <PlusCircle className="w-4 h-4" /> Add resource
+          <PlusCircle className="w-4 h-4" /> Create resource
         </Button>
       </div>
 
@@ -327,7 +341,7 @@ export function RegistryView({ workspaceId, resources, projects, scopedProjectId
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="max-w-2xl bg-[#111318] border-[#1e2028]">
           <DialogHeader>
-            <DialogTitle>Add resource</DialogTitle>
+            <DialogTitle>Create resource</DialogTitle>
             <DialogDescription>
               Register a vendor, subscription, API, or piece of infrastructure.
             </DialogDescription>
@@ -406,7 +420,7 @@ function EmptyState({
       </p>
       <div className="mt-6 flex items-center justify-center gap-3">
         <Button onClick={onAdd}>
-          <PlusCircle className="w-4 h-4" /> Add resource
+          <PlusCircle className="w-4 h-4" /> Create resource
         </Button>
         {!hasResources && (
           <Button variant="outline" onClick={onImport}>

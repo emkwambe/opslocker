@@ -28,8 +28,15 @@ module.exports = {
       },
       keyframes: {
         "fade-in": { from: { opacity: "0", transform: "translateY(4px)" }, to: { opacity: "1", transform: "translateY(0)" } },
+        "amber-pulse": {
+          "0%, 100%": { borderColor: "rgba(245, 158, 11, 0.30)", boxShadow: "0 0 0 0 rgba(245, 158, 11, 0)" },
+          "50%": { borderColor: "rgba(245, 158, 11, 0.60)", boxShadow: "0 0 0 4px rgba(245, 158, 11, 0.08)" },
+        },
       },
-      animation: { "fade-in": "fade-in 0.3s ease-out" },
+      animation: {
+        "fade-in": "fade-in 0.3s ease-out",
+        "amber-pulse": "amber-pulse 3s ease-in-out infinite",
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],

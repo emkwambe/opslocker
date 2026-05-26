@@ -36,7 +36,7 @@ export default async function SettingsPage() {
         </p>
         <h1 className="text-2xl font-semibold text-slate-100 mt-1">Settings</h1>
         <p className="text-sm text-slate-400 mt-1.5">
-          Workspace metadata, data ownership, and import/export.
+          Workspace settings — identity, data ownership, and import/export.
         </p>
       </div>
 

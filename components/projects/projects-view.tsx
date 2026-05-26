@@ -80,7 +80,7 @@ export function ProjectsView({ workspaceId, projects }: Props) {
         />
         <div className="flex-1" />
         <Button onClick={() => setCreateOpen(true)}>
-          <PlusCircle className="w-4 h-4" /> New project
+          <PlusCircle className="w-4 h-4" /> Create project
         </Button>
       </div>
 
@@ -99,7 +99,7 @@ export function ProjectsView({ workspaceId, projects }: Props) {
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="max-w-lg bg-[#111318] border-[#1e2028]">
           <DialogHeader>
-            <DialogTitle>New project</DialogTitle>
+            <DialogTitle>Create project</DialogTitle>
             <DialogDescription>
               A project groups related infrastructure under one application or environment.
             </DialogDescription>

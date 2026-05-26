@@ -329,7 +329,7 @@ export function ResourceForm({
               {mode === "create" ? "Adding" : "Saving"}
             </>
           ) : mode === "create" ? (
-            "Add resource"
+            "Create resource"
           ) : (
             "Save changes"
           )}

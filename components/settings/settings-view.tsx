@@ -1,8 +1,12 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Download, Upload, FileText, FileJson } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ExportPreviewDialog } from "@/components/settings/export-preview-dialog";
+import { InlineEditField } from "@/components/settings/inline-edit-field";
 import { useUIStore } from "@/store";
 
 type Props = {
@@ -20,13 +24,37 @@ type Props = {
 };
 
 export function SettingsView({ workspace, stats }: Props) {
+  const router = useRouter();
   const setImportOpen = useUIStore((s) => s.setImportOpen);
+  const [exportOpen, setExportOpen] = useState(false);
+
+  const updateWorkspace = async (
+    field: "name" | "description",
+    next: string | null
+  ): Promise<{ ok: boolean; error?: string }> => {
+    const res = await fetch(`/api/workspaces/${workspace.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ [field]: next }),
+    });
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      return { ok: false, error: body?.error ?? "Failed to save" };
+    }
+    router.refresh();
+    return { ok: true };
+  };
 
   return (
     <div className="space-y-6">
       <Section title="Workspace" subtitle="Identity and creation metadata.">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Name" value={workspace.name} />
+          <InlineEditField
+            label="Name"
+            value={workspace.name}
+            placeholder="Workspace name"
+            onSave={(next) => updateWorkspace("name", next)}
+          />
           <Field
             label="Created"
             value={new Date(workspace.createdAt).toLocaleDateString("en-US", {
@@ -35,11 +63,16 @@ export function SettingsView({ workspace, stats }: Props) {
               year: "numeric",
             })}
           />
-          <Field
-            label="Description"
-            value={workspace.description ?? "—"}
-            className="sm:col-span-2"
-          />
+          <div className="sm:col-span-2">
+            <InlineEditField
+              label="Description"
+              value={workspace.description}
+              multiline
+              placeholder="One-line context for what lives in this workspace"
+              onSave={(next) => updateWorkspace("description", next)}
+            />
+          </div>
+          <Field label="Workspace ID" value={workspace.id} mono className="sm:col-span-2" />
         </div>
         <div className="grid grid-cols-3 gap-4 mt-5 pt-5 border-t border-[#1e2028]">
           <Stat label="Projects" value={stats.projects} />
@@ -64,24 +97,25 @@ export function SettingsView({ workspace, stats }: Props) {
           <Action
             icon={FileJson}
             iconTone="text-emerald-400 bg-emerald-400/10 border-emerald-400/20"
-            title="Export JSON"
-            description="Full workspace snapshot including events, invoices, and relationships."
+            title="Export workspace"
+            description="Preview record counts before downloading the full JSON snapshot or a resources-only CSV."
             cta={
-              <Button asChild variant="outline" size="sm">
-                <a href="/api/export?format=json" download>
-                  <Download className="w-3.5 h-3.5" /> Download .json
-                </a>
+              <Button onClick={() => setExportOpen(true)} variant="outline" size="sm">
+                <Download className="w-3.5 h-3.5" /> Preview &amp; export
               </Button>
             }
           />
           <Action
             icon={FileText}
             iconTone="text-amber-400 bg-amber-400/10 border-amber-400/20"
-            title="Export resources CSV"
-            description="Resources only, ready for spreadsheets, finance reviews, or reimports."
+            title="Direct CSV download"
+            description="Skip the preview if you just need a resources CSV for spreadsheets."
             cta={
               <Button asChild variant="outline" size="sm">
-                <a href="/api/export?format=csv" download>
+                <a
+                  href={`/api/export?format=csv&workspaceId=${workspace.id}`}
+                  download
+                >
                   <Download className="w-3.5 h-3.5" /> Download .csv
                 </a>
               </Button>
@@ -110,6 +144,12 @@ export function SettingsView({ workspace, stats }: Props) {
           </Link>
         </div>
       </Section>
+
+      <ExportPreviewDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        workspaceId={workspace.id}
+      />
     </div>
   );
 }
@@ -138,17 +178,27 @@ function Field({
   label,
   value,
   className,
+  mono,
 }: {
   label: string;
   value: string;
   className?: string;
+  mono?: boolean;
 }) {
   return (
     <div className={className}>
       <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
         {label}
       </p>
-      <p className="text-sm text-slate-200 mt-1 break-words">{value}</p>
+      <p
+        className={
+          mono
+            ? "text-xs text-slate-500 mt-1 break-all font-mono"
+            : "text-sm text-slate-200 mt-1 break-words"
+        }
+      >
+        {value}
+      </p>
     </div>
   );
 }

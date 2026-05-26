@@ -27,6 +27,9 @@ export type DashboardMetrics = {
   atRiskResources: number;
   upcomingRenewals: number;
   monthlySpend: number;
+  wasteSignalsCount: number;
+  wasteAnnualEstimate: number;
+  currency: string;
 };
 
 export async function getDashboardMetrics(workspaceId: string): Promise<DashboardMetrics> {
@@ -55,7 +58,25 @@ export async function getDashboardMetrics(workspaceId: string): Promise<Dashboar
     .filter((r) => r.lifecycleState !== "archived")
     .reduce((sum, r) => sum + (r.monthlyCost ?? 0), 0);
 
-  return { totalResources, activeResources, atRiskResources, upcomingRenewals, monthlySpend };
+  const wasteResources = all.filter(
+    (r) =>
+      (r.lifecycleState === "deprecated" || r.lifecycleState === "archived") &&
+      (r.monthlyCost ?? 0) > 0
+  );
+  const wasteSignalsCount = wasteResources.length;
+  const wasteAnnualEstimate =
+    wasteResources.reduce((sum, r) => sum + (r.monthlyCost ?? 0), 0) * 12;
+
+  return {
+    totalResources,
+    activeResources,
+    atRiskResources,
+    upcomingRenewals,
+    monthlySpend,
+    wasteSignalsCount,
+    wasteAnnualEstimate,
+    currency: all[0]?.currency ?? "USD",
+  };
 }
 
 export async function getUpcomingRenewals(workspaceId: string, limit = 6): Promise<Resource[]> {

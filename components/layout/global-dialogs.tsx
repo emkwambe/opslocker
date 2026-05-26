@@ -39,7 +39,7 @@ export function GlobalDialogs({ workspaceId, projects }: Props) {
       <Dialog open={newResourceOpen} onOpenChange={setNewResourceOpen}>
         <DialogContent className="max-w-2xl bg-[#111318] border-[#1e2028]">
           <DialogHeader>
-            <DialogTitle>Add resource</DialogTitle>
+            <DialogTitle>Create resource</DialogTitle>
             <DialogDescription>
               Register a vendor, subscription, API, or piece of infrastructure.
             </DialogDescription>
@@ -66,7 +66,7 @@ export function GlobalDialogs({ workspaceId, projects }: Props) {
       <Dialog open={newProjectOpen} onOpenChange={setNewProjectOpen}>
         <DialogContent className="max-w-lg bg-[#111318] border-[#1e2028]">
           <DialogHeader>
-            <DialogTitle>New project</DialogTitle>
+            <DialogTitle>Create project</DialogTitle>
             <DialogDescription>
               A project groups related infrastructure under one application or
               environment.

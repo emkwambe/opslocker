@@ -38,6 +38,7 @@ const NAV_COMMANDS = [
   { label: "Go to Graph", path: "/graph", icon: GitBranch },
   { label: "Go to Timeline", path: "/timeline", icon: Clock },
   { label: "Go to Subscriptions", path: "/subscriptions", icon: DollarSign },
+  { label: "Go to Finances", path: "/finances", icon: DollarSign },
   { label: "Go to Reminders", path: "/reminders", icon: Bell },
   { label: "Go to Search", path: "/search", icon: SearchIcon },
   { label: "Go to Settings", path: "/settings", icon: Settings },
@@ -104,14 +105,14 @@ export function CommandPalette({ resources }: Props) {
             onSelect={() => runAction(() => setNewResourceOpen(true))}
           >
             <PlusCircle className="w-4 h-4" />
-            <span>New resource</span>
+            <span>Create resource</span>
           </CommandItem>
           <CommandItem
             value="new-project create project"
             onSelect={() => runAction(() => setNewProjectOpen(true))}
           >
             <FolderOpen className="w-4 h-4" />
-            <span>New project</span>
+            <span>Create project</span>
           </CommandItem>
           <CommandItem
             value="import csv env"

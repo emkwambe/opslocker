@@ -44,7 +44,7 @@ export default async function TimelinePage() {
           </p>
           <h1 className="text-2xl font-semibold text-slate-100 mt-1">Timeline</h1>
           <p className="text-sm text-slate-400 mt-1.5">
-            Chronological log of every operational change in this workspace.
+            Operational history — every change to your infrastructure, in order.
           </p>
         </div>
       </div>

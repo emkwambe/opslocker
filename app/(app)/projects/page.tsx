@@ -36,7 +36,7 @@ export default async function ProjectsPage() {
           </p>
           <h1 className="text-2xl font-semibold text-slate-100 mt-1">Projects</h1>
           <p className="text-sm text-slate-400 mt-1.5">
-            Group infrastructure by application, environment, or domain.
+            Operational grouping — keep related vendors, APIs, and environments together.
           </p>
         </div>
       </div>
