@@ -4,7 +4,7 @@ import { alias } from "drizzle-orm/sqlite-core";
 import { getDb } from "@/lib/db/client";
 import { projects, relationships, resources } from "@/lib/schema";
 import { getDefaultWorkspace } from "@/lib/db/queries";
-import { GraphView } from "@/components/graph/graph-view";
+import { GraphViewLoader as GraphView } from "@/components/graph/graph-view-loader";
 
 export const dynamic = "force-dynamic";
 

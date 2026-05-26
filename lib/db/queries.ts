@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { and, desc, eq, gte, isNotNull, ne } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
 import {
@@ -9,7 +10,9 @@ import {
   type Resource,
 } from "@/lib/schema";
 
-export async function getDefaultWorkspace() {
+// React.cache() dedupes calls within a single server request — so the layout
+// and the page can both call getDefaultWorkspace() without hitting SQLite twice.
+export const getDefaultWorkspace = cache(async () => {
   const db = getDb();
   const [defaultWs] = await db
     .select()
@@ -19,7 +22,23 @@ export async function getDefaultWorkspace() {
   if (defaultWs) return defaultWs;
   const [first] = await db.select().from(workspaces).limit(1);
   return first ?? null;
-}
+});
+
+export const getWorkspaceProjects = cache(async (workspaceId: string) => {
+  return getDb()
+    .select()
+    .from(projects)
+    .where(eq(projects.workspaceId, workspaceId))
+    .orderBy(projects.name);
+});
+
+export const getWorkspaceResources = cache(async (workspaceId: string) => {
+  return getDb()
+    .select()
+    .from(resources)
+    .where(eq(resources.workspaceId, workspaceId))
+    .orderBy(desc(resources.updatedAt));
+});
 
 export type DashboardMetrics = {
   totalResources: number;

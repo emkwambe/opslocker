@@ -1,11 +1,12 @@
-import { eq } from "drizzle-orm";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppHeader } from "@/components/layout/app-header";
 import { GlobalDialogs } from "@/components/layout/global-dialogs";
 import { CommandPalette } from "@/components/layout/command-palette";
-import { getDb } from "@/lib/db/client";
-import { projects, resources } from "@/lib/schema";
-import { getDefaultWorkspace } from "@/lib/db/queries";
+import {
+  getDefaultWorkspace,
+  getWorkspaceProjects,
+  getWorkspaceResources,
+} from "@/lib/db/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -15,26 +16,22 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const workspace = await getDefaultWorkspace();
-  const db = getDb();
 
-  const [projectRows, resourceRows] = workspace
+  const [allProjects, allResources] = workspace
     ? await Promise.all([
-        db
-          .select({ id: projects.id, name: projects.name })
-          .from(projects)
-          .where(eq(projects.workspaceId, workspace.id))
-          .orderBy(projects.name),
-        db
-          .select({
-            id: resources.id,
-            name: resources.name,
-            vendorName: resources.vendorName,
-          })
-          .from(resources)
-          .where(eq(resources.workspaceId, workspace.id))
-          .orderBy(resources.name),
+        getWorkspaceProjects(workspace.id),
+        getWorkspaceResources(workspace.id),
       ])
     : [[], []];
+
+  // Project to only what the palette + dialogs need — full rows live in React.cache
+  // and are reused by pages without re-querying.
+  const projectRows = allProjects.map((p) => ({ id: p.id, name: p.name }));
+  const resourceRows = allResources.map((r) => ({
+    id: r.id,
+    name: r.name,
+    vendorName: r.vendorName,
+  }));
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#0a0b0e]">

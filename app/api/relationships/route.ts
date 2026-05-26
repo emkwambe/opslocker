@@ -118,12 +118,21 @@ export async function POST(req: NextRequest) {
 
     const [created] = await db.insert(relationships).values(body).returning();
 
+    const RELATIONSHIP_PHRASE: Record<string, string> = {
+      depends_on: "now depends on",
+      bills_through: "now bills through",
+      authenticates_with: "now authenticates with",
+      sends_through: "now sends through",
+      deploys_to: "now deploys to",
+      integrates_with: "now integrates with",
+    };
+    const phrase = RELATIONSHIP_PHRASE[body.relationshipType] ?? `now ${body.relationshipType.replace(/_/g, " ")}`;
     await db.insert(operationalEvents).values({
       workspaceId: src.workspaceId,
       projectId: src.projectId,
       resourceId: src.id,
       eventType: "relationship_added",
-      description: `${src.name} ${body.relationshipType.replace(/_/g, " ")} ${tgt.name}`,
+      description: `${src.name} ${phrase} ${tgt.name} — operational dependency mapped`,
       metadata: {
         relationshipId: created.id,
         targetResourceId: tgt.id,

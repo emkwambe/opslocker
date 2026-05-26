@@ -7,7 +7,6 @@ import {
   CalendarClock,
   PlusCircle,
   DollarSign,
-  ArrowUpRight,
 } from "lucide-react";
 import {
   getDashboardMetrics,
@@ -15,11 +14,13 @@ import {
   getRecentActivity,
   getUpcomingRenewals,
 } from "@/lib/db/queries";
+import { computeInsights } from "@/lib/db/intelligence";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { RenewalRiskPanel } from "@/components/dashboard/renewal-risk-panel";
 import { RecentActivityFeed } from "@/components/dashboard/recent-activity-feed";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { LastUpdated } from "@/components/dashboard/last-updated";
+import { IntelligencePanel } from "@/components/dashboard/intelligence-panel";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 
@@ -29,10 +30,11 @@ export default async function DashboardPage() {
   const workspace = await getDefaultWorkspace();
   if (!workspace) redirect("/setup");
 
-  const [metrics, renewals, activity] = await Promise.all([
+  const [metrics, renewals, activity, insights] = await Promise.all([
     getDashboardMetrics(workspace.id),
     getUpcomingRenewals(workspace.id),
     getRecentActivity(workspace.id),
+    computeInsights(workspace.id),
   ]);
 
   const empty = metrics.totalResources === 0;
@@ -107,31 +109,9 @@ export default async function DashboardPage() {
             />
           </div>
 
-          {metrics.wasteSignalsCount > 0 && (
-            <Link
-              href="/finances"
-              className="block rounded-lg border border-amber-500/30 bg-amber-500/[0.06] px-4 py-3 animate-amber-pulse hover:animate-none hover:bg-amber-500/[0.1] hover:border-amber-500/50 transition-colors"
-            >
-              <div className="flex items-center justify-between gap-3 flex-wrap">
-                <div className="flex items-center gap-2.5">
-                  <AlertTriangle className="w-4 h-4 text-amber-400" />
-                  <span className="text-sm text-amber-200">
-                    <span className="font-semibold text-amber-100">
-                      {metrics.wasteSignalsCount} waste signal
-                      {metrics.wasteSignalsCount === 1 ? "" : "s"}
-                    </span>{" "}
-                    detected — {formatCurrency(metrics.wasteAnnualEstimate, metrics.currency)}
-                    /yr at risk in deprecated or archived resources still billing.
-                  </span>
-                </div>
-                <span className="text-xs text-amber-200 inline-flex items-center gap-1">
-                  Review in Finances <ArrowUpRight className="w-3 h-3" />
-                </span>
-              </div>
-            </Link>
-          )}
-
           <QuickActions />
+
+          <IntelligencePanel insights={insights} />
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
             <div className="lg:col-span-3">

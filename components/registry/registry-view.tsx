@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   flexRender,
@@ -39,9 +39,10 @@ import {
 import { LifecycleBadge, EnvironmentBadge } from "@/components/shared/badges";
 import { ResourceForm } from "@/components/registry/resource-form";
 import { ResourceDetailSheet } from "@/components/registry/resource-detail-sheet";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { ExpandedRow } from "@/components/registry/expanded-row";
+import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import { useUIStore } from "@/store";
-import { Upload } from "lucide-react";
+import { ChevronRight, Upload } from "lucide-react";
 import type { Resource } from "@/lib/schema";
 
 type Props = {
@@ -65,7 +66,40 @@ export function RegistryView({
   const deepLinkedId = searchParams.get("resourceId");
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(deepLinkedId);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [resources, setResources] = useState(initialResources);
+  const [relationships, setRelationships] = useState<
+    Array<{ sourceResourceId: string; targetResourceId: string }> | null
+  >(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/relationships?workspaceId=${workspaceId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled && Array.isArray(data)) setRelationships(data);
+      })
+      .catch(() => {
+        if (!cancelled) setRelationships([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [workspaceId]);
+
+  const relCountsById = useMemo(() => {
+    const map = new Map<string, { incoming: number; outgoing: number }>();
+    if (!relationships) return map;
+    for (const rel of relationships) {
+      const out = map.get(rel.sourceResourceId) ?? { incoming: 0, outgoing: 0 };
+      out.outgoing += 1;
+      map.set(rel.sourceResourceId, out);
+      const inc = map.get(rel.targetResourceId) ?? { incoming: 0, outgoing: 0 };
+      inc.incoming += 1;
+      map.set(rel.targetResourceId, inc);
+    }
+    return map;
+  }, [relationships]);
 
   // Sync local state when the server props change (e.g. after router.refresh())
   useEffect(() => {
@@ -317,19 +351,79 @@ export function RegistryView({
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  className="border-b border-[#1e2028] last:border-b-0 hover:bg-[#1a1d26] cursor-pointer"
-                  onClick={() => setSelectedId(row.original.id)}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-3">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
+              {table.getRowModel().rows.map((row) => {
+                const isExpanded = expandedId === row.original.id;
+                const visibleCells = row.getVisibleCells();
+                return (
+                  <Fragment key={row.id}>
+                    <TableRow
+                      className={cn(
+                        "hover:bg-[#1a1d26] cursor-pointer",
+                        isExpanded
+                          ? "bg-[#1a1d26] border-b border-transparent"
+                          : "border-b border-[#1e2028] last:border-b-0"
+                      )}
+                      onClick={() =>
+                        setExpandedId((current) =>
+                          current === row.original.id ? null : row.original.id
+                        )
+                      }
+                    >
+                      {visibleCells.map((cell, i) => (
+                        <TableCell
+                          key={cell.id}
+                          className="py-3 align-middle"
+                        >
+                          {i === 0 ? (
+                            <div className="flex items-center gap-2 min-w-0">
+                              <ChevronRight
+                                className={cn(
+                                  "w-3.5 h-3.5 text-slate-500 transition-transform shrink-0",
+                                  isExpanded && "rotate-90 text-slate-300"
+                                )}
+                              />
+                              <div className="min-w-0 flex-1">
+                                {flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext()
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            flexRender(cell.column.columnDef.cell, cell.getContext())
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                    {isExpanded && (
+                      <TableRow className="border-b border-[#1e2028] last:border-b-0 hover:bg-transparent">
+                        <TableCell
+                          colSpan={visibleCells.length}
+                          className="p-0"
+                        >
+                          <ExpandedRow
+                            resource={row.original}
+                            relationshipCount={
+                              relationships === null
+                                ? null
+                                : relCountsById.get(row.original.id) ?? {
+                                    incoming: 0,
+                                    outgoing: 0,
+                                  }
+                            }
+                            onOpenDrawer={() => setSelectedId(row.original.id)}
+                            onResourceUpdated={(updated) =>
+                              setResources((rs) =>
+                                rs.map((r) => (r.id === updated.id ? updated : r))
+                              )
+                            }
+                          />
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </Fragment>
+                );
+              })}
             </TableBody>
           </Table>
           <div className="px-4 py-2.5 text-xs text-slate-500 border-t border-[#1e2028]">

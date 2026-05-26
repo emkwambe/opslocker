@@ -3,7 +3,7 @@ import { desc, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
 import { invoices, projects, resources } from "@/lib/schema";
 import { getDefaultWorkspace } from "@/lib/db/queries";
-import { FinancesView } from "@/components/finances/finances-view";
+import { FinancesViewLoader as FinancesView } from "@/components/finances/finances-view-loader";
 
 export const dynamic = "force-dynamic";
 

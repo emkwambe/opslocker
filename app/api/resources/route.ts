@@ -1,8 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, desc, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
-import { operationalEvents, resources } from "@/lib/schema";
+import { operationalEvents, projects, resources } from "@/lib/schema";
 import { createResourceSchema } from "@/lib/validators";
+
+const CATEGORY_LABEL: Record<string, string> = {
+  database: "database",
+  api: "API",
+  domain: "domain",
+  cloud: "cloud platform",
+  auth: "auth provider",
+  ci_cd: "CI/CD",
+  analytics: "analytics tool",
+  communication: "communication service",
+  storage: "storage backend",
+  monitoring: "monitoring tool",
+  subscription: "subscription",
+  other: "resource",
+};
 
 export async function GET(req: NextRequest) {
   try {
@@ -39,13 +54,29 @@ export async function POST(req: NextRequest) {
     const body = createResourceSchema.parse(await req.json());
     const db = getDb();
     const [resource] = await db.insert(resources).values(body).returning();
+
+    const [project] = await db
+      .select({ name: projects.name })
+      .from(projects)
+      .where(eq(projects.id, resource.projectId))
+      .limit(1);
+
+    const categoryLabel = CATEGORY_LABEL[resource.category] ?? "resource";
+    const projectClause = project ? ` to ${project.name}` : "";
+    const ownerClause = resource.owner ? ` — owner ${resource.owner}` : "";
     await db.insert(operationalEvents).values({
       resourceId: resource.id,
       workspaceId: resource.workspaceId,
       projectId: resource.projectId,
       eventType: "resource_created",
-      description: `${resource.name} added to registry`,
+      description: `${resource.name} added${projectClause} as ${categoryLabel}${ownerClause}`,
+      metadata: {
+        category: resource.category,
+        environment: resource.environment,
+        owner: resource.owner,
+      },
     });
+
     return NextResponse.json(resource, { status: 201 });
   } catch (e) {
     return NextResponse.json(

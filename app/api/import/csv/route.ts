@@ -151,8 +151,11 @@ export async function POST(req: NextRequest) {
           projectId,
           resourceId: r.id,
           eventType: "resource_created",
-          description: `${r.name} imported from CSV`,
-          metadata: { source: "csv_import" },
+          actor: "csv-import",
+          description: `${r.name} imported into ${project.name} from CSV${
+            r.vendorName ? ` — ${r.vendorName} ${r.category.replace("_", "/")}` : ""
+          }`,
+          metadata: { source: "csv_import", category: r.category },
         }))
       );
     }

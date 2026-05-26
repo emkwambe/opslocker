@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   DollarSign,
   ShieldCheck,
@@ -8,12 +9,34 @@ import {
   Archive,
   ArrowUpRight,
   CircleDot,
+  UserX,
 } from "lucide-react";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { LifecycleBadge } from "@/components/shared/badges";
-import { LifecycleBreakdownChart } from "@/components/subscriptions/lifecycle-breakdown-chart";
-import { SpendByCategoryChart } from "@/components/subscriptions/spend-by-category-chart";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+
+const LifecycleBreakdownChart = dynamic(
+  () =>
+    import("@/components/subscriptions/lifecycle-breakdown-chart").then((m) => ({
+      default: m.LifecycleBreakdownChart,
+    })),
+  {
+    loading: () => <Skeleton className="h-56 w-full bg-[#1a1d26]" />,
+    ssr: false,
+  }
+);
+
+const SpendByCategoryChart = dynamic(
+  () =>
+    import("@/components/subscriptions/spend-by-category-chart").then((m) => ({
+      default: m.SpendByCategoryChart,
+    })),
+  {
+    loading: () => <Skeleton className="h-56 w-full bg-[#1a1d26]" />,
+    ssr: false,
+  }
+);
 import {
   cn,
   formatCurrency,
@@ -29,6 +52,7 @@ type SummaryData = {
   byLifecycle: Record<string, number>;
   upcomingRenewals: Resource[];
   inactiveVendors: Resource[];
+  continuityRisk: Resource[];
   spendByCategory: Record<string, number>;
   currency: string;
 };
@@ -53,6 +77,13 @@ export function SubscriptionsView({ summary }: Props) {
 
   return (
     <div className="space-y-5">
+      {summary.continuityRisk.length > 0 && (
+        <ContinuityRiskPanel
+          resources={summary.continuityRisk}
+          currency={summary.currency}
+        />
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <MetricCard
           label="Monthly spend"
@@ -308,6 +339,89 @@ function InactiveVendors({
           })}
         </ul>
       )}
+    </section>
+  );
+}
+
+function ContinuityRiskPanel({
+  resources,
+  currency,
+}: {
+  resources: Resource[];
+  currency: string;
+}) {
+  const totalMonthly = resources.reduce((s, r) => s + (r.monthlyCost ?? 0), 0);
+  return (
+    <section className="rounded-xl border border-red-500/30 bg-red-500/[0.04]">
+      <header className="px-5 py-4 border-b border-red-500/20 flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5">
+          <UserX className="w-4 h-4 text-red-400" />
+          <h2 className="text-sm font-semibold text-slate-100">Continuity risk</h2>
+          <span className="text-xs text-red-200/80">
+            {resources.length} active{" "}
+            {resources.length === 1 ? "resource has" : "resources have"} no operational
+            owner
+          </span>
+        </div>
+        {totalMonthly > 0 && (
+          <div className="text-right">
+            <p className="text-[10px] uppercase tracking-wide text-red-300/80">
+              Unowned spend
+            </p>
+            <p className="text-sm font-semibold text-red-200 tabular-nums">
+              {formatCurrency(totalMonthly, currency)}/mo
+            </p>
+          </div>
+        )}
+      </header>
+      <div className="px-5 py-3.5 border-b border-red-500/10">
+        <p className="text-xs text-red-200/80 leading-relaxed">
+          If these vendors need attention, nobody will know — assign owners before any of
+          them break or renew.
+        </p>
+      </div>
+      <ul className="divide-y divide-red-500/10">
+        {resources.map((r) => {
+          const cost = r.monthlyCost ?? 0;
+          return (
+            <li
+              key={r.id}
+              className="px-5 py-3 flex items-center justify-between gap-3"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-slate-100 truncate">{r.name}</p>
+                <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5 flex-wrap">
+                  {r.vendorName && <span>{r.vendorName}</span>}
+                  {r.vendorName && cost > 0 && <span>·</span>}
+                  {cost > 0 && (
+                    <span>{formatCurrency(cost, r.currency ?? currency)}/mo</span>
+                  )}
+                  <span>·</span>
+                  <span className="capitalize">
+                    {r.category.replace("_", "/")}
+                  </span>
+                </div>
+              </div>
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="bg-[#0d0f14] border-red-500/20 hover:border-red-500/40"
+              >
+                <Link href={`/registry?resourceId=${r.id}`}>Assign owner</Link>
+              </Button>
+            </li>
+          );
+        })}
+      </ul>
+      <div className="px-5 py-3 border-t border-red-500/10">
+        <Link
+          href="/registry"
+          className="text-xs text-red-200 hover:text-red-100 inline-flex items-center gap-1 transition-colors"
+        >
+          Assign owners in Registry <ArrowUpRight className="w-3 h-3" />
+        </Link>
+      </div>
     </section>
   );
 }

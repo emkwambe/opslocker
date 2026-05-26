@@ -150,13 +150,15 @@ If you ever want to migrate, host this yourself, or just walk away with your dat
 
 ## Screenshots
 
-> TODO — capture screenshots from the running app on real seed data:
->
-> - `docs/screenshots/dashboard.png` — operational overview with metric cards and waste signals chip
-> - `docs/screenshots/registry.png` — resource table with filters and drawer open
-> - `docs/screenshots/graph.png` — dependency graph with orphan highlight
-> - `docs/screenshots/finances.png` — vendor spend table, monthly trend chart, waste signals panel
-> - `docs/screenshots/import.png` — CSV import dialog showing preview and column mapping
+Run `npm run db:seed` to load demo data before capturing screenshots, then save them under `screenshots/` at the repo root:
+
+- `screenshots/dashboard.png`
+- `screenshots/projects.png`
+- `screenshots/registry.png`
+- `screenshots/graph.png`
+- `screenshots/timeline.png`
+- `screenshots/subscriptions.png`
+- `screenshots/reminders.png`
 
 ---
 

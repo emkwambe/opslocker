@@ -20,6 +20,10 @@ function isoDaysAgo(days: number): string {
   return new Date(Date.now() - days * 86_400_000).toISOString();
 }
 
+function reviewedDaysAgo(days: number): string {
+  return new Date(Date.now() - days * 86_400_000).toISOString();
+}
+
 async function main() {
   const db = getDb();
   const now = new Date();
@@ -90,9 +94,11 @@ async function main() {
         lifecycleState: "active",
         renewalDate: addDays(now, 12),
         monthlyCost: 380,
-        notes: "GPT-4o + embeddings for TaxPilot return reasoning.",
+        notes:
+          "Primary LLM backbone for TaxPilot document analysis. Switched from GPT-3.5 to GPT-4o in March 2026 — quality jump justified the 2x cost. Anthropic is the leading fallback if pricing changes.",
         tags: ["llm", "core"],
         website: "https://platform.openai.com",
+        lastReviewedAt: reviewedDaysAgo(18),
       },
       {
         projectId: taxpilot.id,
@@ -105,9 +111,11 @@ async function main() {
         lifecycleState: "active",
         renewalDate: null,
         monthlyCost: 0,
-        notes: "Customer billing for TaxPilot. Per-transaction pricing.",
+        notes:
+          "Customer billing for TaxPilot — per-transaction pricing, no recurring subscription fee. Connect account is in test mode for sandboxed customers.",
         tags: ["billing"],
         website: "https://stripe.com",
+        lastReviewedAt: reviewedDaysAgo(42),
       },
       {
         projectId: taxpilot.id,
@@ -120,9 +128,11 @@ async function main() {
         lifecycleState: "active",
         renewalDate: addDays(now, 4),
         monthlyCost: 20,
-        notes: "Frontend + serverless hosting for TaxPilot.",
+        notes:
+          "Frontend + serverless hosting for TaxPilot. Bumped from Hobby to Pro in March 2026 for the bandwidth + team seats. Build-time budget watched via the dashboard.",
         tags: ["hosting"],
         website: "https://vercel.com",
+        lastReviewedAt: reviewedDaysAgo(7),
       },
       {
         projectId: taxpilot.id,
@@ -135,9 +145,11 @@ async function main() {
         lifecycleState: "active",
         renewalDate: addDays(now, 21),
         monthlyCost: 20,
-        notes: "Transactional email for receipts and renewal notices.",
+        notes:
+          "Transactional email for receipts, renewal notices, and password resets. SPF + DKIM verified for mpingo.io and taxpilot.ai.",
         tags: ["email"],
         website: "https://resend.com",
+        lastReviewedAt: reviewedDaysAgo(60),
       },
       {
         projectId: taxpilot.id,
@@ -150,9 +162,11 @@ async function main() {
         lifecycleState: "active",
         renewalDate: addDays(now, 55),
         monthlyCost: 25,
-        notes: "Customer authentication and session management.",
+        notes:
+          "Auth provider — replaced Auth0 in January 2026 due to pricing. Handles SSO for enterprise customers and is on the critical login path.",
         tags: ["auth"],
         website: "https://clerk.com",
+        lastReviewedAt: reviewedDaysAgo(28),
       },
       {
         projectId: taxpilot.id,
@@ -165,9 +179,11 @@ async function main() {
         lifecycleState: "active",
         renewalDate: addDays(now, 9),
         monthlyCost: 25,
-        notes: "Primary Postgres + storage. Encrypted backups daily.",
+        notes:
+          "Production database for TaxPilot — Postgres + storage + auth tokens. Daily encrypted backups, PITR enabled. Do not deprecate without a full migration plan.",
         tags: ["database", "core"],
         website: "https://supabase.com",
+        lastReviewedAt: reviewedDaysAgo(11),
       },
       // VaultNoir stack
       {
@@ -181,9 +197,11 @@ async function main() {
         lifecycleState: "trial",
         renewalDate: addDays(now, 2),
         monthlyCost: 0,
-        notes: "Trial credits for Claude — evaluating memory summarization.",
+        notes:
+          "Trial credits for Claude — evaluating against OpenAI for memory summarization in VaultNoir. Decision deadline before trial expiry.",
         tags: ["llm", "evaluation"],
         website: "https://console.anthropic.com",
+        lastReviewedAt: null,
       },
       {
         projectId: vaultnoir.id,
@@ -192,13 +210,15 @@ async function main() {
         vendorName: "Cloudflare",
         category: "storage",
         environment: "staging",
-        owner: "Eddy Mkwambe",
+        owner: null,
         lifecycleState: "active",
         renewalDate: addDays(now, 38),
         monthlyCost: 8,
-        notes: "Encrypted blob storage for memory snapshots.",
+        notes:
+          "Encrypted blob storage for VaultNoir memory snapshots. Previously owned by an ex-contractor — needs an owner reassigned before next renewal.",
         tags: ["storage"],
         website: "https://www.cloudflare.com/products/r2/",
+        lastReviewedAt: null,
       },
       {
         projectId: vaultnoir.id,
@@ -207,13 +227,15 @@ async function main() {
         vendorName: "PostHog",
         category: "analytics",
         environment: "staging",
-        owner: "Marketing",
+        owner: null,
         lifecycleState: "at_risk",
         renewalDate: addDays(now, 6),
         monthlyCost: 49,
-        notes: "Originally added by ex-contractor — current usage unclear.",
+        notes:
+          "Originally added by an ex-contractor for VaultNoir analytics — current usage unclear, no owner, and the account access list hasn't been audited. Review before renewal.",
         tags: ["analytics", "review-needed"],
         website: "https://posthog.com",
+        lastReviewedAt: null,
       },
       // Internal Tools
       {
@@ -227,9 +249,11 @@ async function main() {
         lifecycleState: "active",
         renewalDate: addDays(now, 75),
         monthlyCost: 44,
-        notes: "Source control + Actions CI for all Mpingo projects.",
+        notes:
+          "Source control + Actions CI for every Mpingo project. SSO enforced, branch protections required on main. Org owner controls billing.",
         tags: ["scm", "shared"],
         website: "https://github.com",
+        lastReviewedAt: reviewedDaysAgo(120),
       },
       {
         projectId: internal.id,
@@ -242,9 +266,11 @@ async function main() {
         lifecycleState: "active",
         renewalDate: addDays(now, 26),
         monthlyCost: 16,
-        notes: "Issue tracking + roadmapping for engineering.",
+        notes:
+          "Issue tracking + roadmapping. Reduced from 5 seats to 3 last month after team consolidation. Slack integration drives notification fanout.",
         tags: ["pm"],
         website: "https://linear.app",
+        lastReviewedAt: reviewedDaysAgo(35),
       },
       {
         projectId: internal.id,
@@ -258,9 +284,10 @@ async function main() {
         renewalDate: addDays(now, 18),
         monthlyCost: 31,
         notes:
-          "Previous APM tool — replaced by Vercel observability. Cancel before renewal.",
+          "Previous APM tool — replaced by Vercel observability in March 2026 but the subscription kept billing. Cancel before the next renewal to stop the $31/mo bleed.",
         tags: ["cleanup"],
         website: "https://www.datadoghq.com",
+        lastReviewedAt: null,
       },
     ])
     .returning();
@@ -288,8 +315,19 @@ async function main() {
       resourceId: byName["OpenAI Platform"].id,
       eventType: "resource_created",
       actor: "Eddy Mkwambe",
-      description: "OpenAI Platform registered for TaxPilot AI",
+      description:
+        "OpenAI Platform added to TaxPilot AI — production API integration for document reasoning",
       timestamp: isoDaysAgo(34),
+    },
+    {
+      workspaceId: workspace.id,
+      projectId: taxpilot.id,
+      resourceId: byName["OpenAI Platform"].id,
+      eventType: "resource_updated",
+      actor: "Eddy Mkwambe",
+      description:
+        "OpenAI Platform model upgraded from GPT-3.5 to GPT-4o — accuracy gain justified higher per-token cost",
+      timestamp: isoDaysAgo(28),
     },
     {
       workspaceId: workspace.id,
@@ -297,8 +335,19 @@ async function main() {
       resourceId: byName["Supabase"].id,
       eventType: "subscription_upgraded",
       actor: "Eddy Mkwambe",
-      description: "Supabase upgraded to Pro plan",
+      description:
+        "Supabase upgraded from Free to Pro for TaxPilot AI — point-in-time recovery and daily encrypted backups enabled",
       timestamp: isoDaysAgo(21),
+    },
+    {
+      workspaceId: workspace.id,
+      projectId: taxpilot.id,
+      resourceId: byName["Clerk"].id,
+      eventType: "resource_created",
+      actor: "Eddy Mkwambe",
+      description:
+        "Clerk added to TaxPilot AI as auth provider — replaced Auth0 to cut $89/mo and unlock org SSO",
+      timestamp: isoDaysAgo(40),
     },
     {
       workspaceId: workspace.id,
@@ -306,7 +355,8 @@ async function main() {
       resourceId: byName["Vercel Pro"].id,
       eventType: "renewal_flagged",
       actor: "system",
-      description: "Vercel Pro renews in 4 days",
+      description:
+        "Vercel Pro renews in 4 days — $20/mo recurring, hosts customer-facing TaxPilot frontend",
       timestamp: isoDaysAgo(2),
     },
     {
@@ -315,7 +365,18 @@ async function main() {
       resourceId: byName["PostHog Cloud"].id,
       eventType: "ownership_changed",
       actor: "Eddy Mkwambe",
-      description: "PostHog Cloud owner cleared — pending reassignment",
+      description:
+        "PostHog Cloud owner cleared — ex-contractor offboarded, no current owner before next renewal",
+      timestamp: isoDaysAgo(5),
+    },
+    {
+      workspaceId: workspace.id,
+      projectId: vaultnoir.id,
+      resourceId: byName["Cloudflare R2"].id,
+      eventType: "ownership_changed",
+      actor: "Eddy Mkwambe",
+      description:
+        "Cloudflare R2 ownership cleared — ex-contractor offboarded, needs an owner before VaultNoir launch",
       timestamp: isoDaysAgo(5),
     },
     {
@@ -324,7 +385,8 @@ async function main() {
       resourceId: byName["Datadog Lite"].id,
       eventType: "service_deprecated",
       actor: "Eddy Mkwambe",
-      description: "Datadog Lite marked deprecated — replaced by Vercel observability",
+      description:
+        "Datadog Lite marked deprecated — replaced by Vercel observability, cancel before next billing cycle to stop the $31/mo bleed",
       timestamp: isoDaysAgo(9),
     },
     {
@@ -333,7 +395,8 @@ async function main() {
       resourceId: byName["Anthropic API"].id,
       eventType: "resource_created",
       actor: "Eddy Mkwambe",
-      description: "Anthropic API trial added for VaultNoir evaluation",
+      description:
+        "Anthropic API trial added to VaultNoir — evaluating Claude against OpenAI for memory summarization",
       timestamp: isoDaysAgo(13),
     },
     {
@@ -342,8 +405,27 @@ async function main() {
       resourceId: byName["Clerk"].id,
       eventType: "secret_rotated",
       actor: "Eddy Mkwambe",
-      description: "Clerk API key rotated as part of quarterly review",
+      description:
+        "Clerk API key rotated as part of quarterly review — old key revoked, deployment redeployed cleanly",
       timestamp: isoDaysAgo(1),
+    },
+    {
+      workspaceId: workspace.id,
+      projectId: taxpilot.id,
+      resourceId: byName["OpenAI Platform"].id,
+      eventType: "resource_reviewed",
+      actor: "Eddy Mkwambe",
+      description: "OpenAI Platform reviewed — operational status confirmed",
+      timestamp: isoDaysAgo(18),
+    },
+    {
+      workspaceId: workspace.id,
+      projectId: taxpilot.id,
+      resourceId: byName["Vercel Pro"].id,
+      eventType: "resource_reviewed",
+      actor: "Eddy Mkwambe",
+      description: "Vercel Pro reviewed — operational status confirmed",
+      timestamp: isoDaysAgo(7),
     },
     {
       workspaceId: workspace.id,

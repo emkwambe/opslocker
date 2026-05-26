@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Pencil, Trash2, ExternalLink } from "lucide-react";
+import { Loader2, Pencil, Trash2, ExternalLink, CheckCircle2 } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -26,6 +26,8 @@ import { LifecycleBadge, EnvironmentBadge } from "@/components/shared/badges";
 import { ResourceForm } from "@/components/registry/resource-form";
 import { ResourceEventsTab } from "@/components/registry/resource-events-tab";
 import { ResourceRemindersTab } from "@/components/registry/resource-reminders-tab";
+import { OperationalHealthBar } from "@/components/registry/operational-health-bar";
+import { OperationalNotes } from "@/components/registry/operational-notes";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { Resource } from "@/lib/schema";
 
@@ -53,6 +55,7 @@ export function ResourceDetailSheet({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [refetchKey, setRefetchKey] = useState(0);
+  const [reviewing, setReviewing] = useState(false);
 
   useEffect(() => {
     if (!resourceId) {
@@ -93,6 +96,23 @@ export function ResourceDetailSheet({
     }
     setConfirmDelete(false);
     onDeleted();
+  };
+
+  const markReviewed = async () => {
+    if (!resource || reviewing) return;
+    setReviewing(true);
+    const now = new Date().toISOString();
+    const res = await fetch(`/api/resources/${resource.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lastReviewedAt: now }),
+    });
+    setReviewing(false);
+    if (!res.ok) return;
+    const updated = (await res.json()) as Resource;
+    setResource(updated);
+    setRefetchKey((k) => k + 1);
+    onMutated(updated);
   };
 
   const projectName = resource
@@ -140,6 +160,20 @@ export function ResourceDetailSheet({
                   <Button
                     variant="ghost"
                     size="sm"
+                    onClick={markReviewed}
+                    disabled={reviewing || editing}
+                    title="Confirm operational status is current"
+                  >
+                    {reviewing ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                    )}
+                    Mark reviewed
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setEditing((e) => !e)}
                   >
                     <Pencil className="w-3.5 h-3.5" />
@@ -169,6 +203,8 @@ export function ResourceDetailSheet({
               </div>
             </SheetHeader>
 
+            <OperationalHealthBar resource={resource} workspaceId={workspaceId} />
+
             <div className="flex-1 overflow-y-auto">
               {editing ? (
                 <div className="p-6">
@@ -194,7 +230,13 @@ export function ResourceDetailSheet({
                     <TabsTrigger value="reminders">Reminders</TabsTrigger>
                   </TabsList>
                   <TabsContent value="overview" className="mt-5 space-y-5">
-                    <Overview resource={resource} />
+                    <Overview
+                      resource={resource}
+                      onResourceUpdated={(updated) => {
+                        setResource(updated);
+                        onMutated(updated);
+                      }}
+                    />
                   </TabsContent>
                   <TabsContent value="events" className="mt-5">
                     <ResourceEventsTab
@@ -244,7 +286,13 @@ export function ResourceDetailSheet({
   );
 }
 
-function Overview({ resource }: { resource: Resource }) {
+function Overview({
+  resource,
+  onResourceUpdated,
+}: {
+  resource: Resource;
+  onResourceUpdated: (updated: Resource) => void;
+}) {
   const cost = resource.monthlyCost ?? 0;
   return (
     <>
@@ -259,8 +307,16 @@ function Overview({ resource }: { resource: Resource }) {
           value={cost > 0 ? `${formatCurrency(cost, resource.currency ?? "USD")}/mo` : "—"}
         />
         <Field
-          label="Currency"
-          value={resource.currency ?? "USD"}
+          label="Last reviewed"
+          value={
+            resource.lastReviewedAt ? (
+              <span className="text-slate-200">
+                {formatDate(resource.lastReviewedAt)}
+              </span>
+            ) : (
+              <span className="text-amber-300">Never reviewed</span>
+            )
+          }
         />
         <Field
           label="Website"
@@ -302,20 +358,14 @@ function Overview({ resource }: { resource: Resource }) {
 
       <Separator className="bg-[#1e2028]" />
 
-      <div>
-        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-          Operational notes
-        </p>
-        {resource.notes ? (
-          <p className="text-sm text-slate-300 mt-2 whitespace-pre-wrap leading-relaxed">
-            {resource.notes}
-          </p>
-        ) : (
-          <p className="text-sm text-slate-500 mt-2 italic">
-            No notes yet. Add context about why this resource exists.
-          </p>
-        )}
-      </div>
+      <OperationalNotes
+        resourceId={resource.id}
+        notes={resource.notes}
+        updatedAt={resource.updatedAt}
+        onSaved={(nextNotes, updatedAt) =>
+          onResourceUpdated({ ...resource, notes: nextNotes, updatedAt })
+        }
+      />
 
       <div>
         <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Tags</p>

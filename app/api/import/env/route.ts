@@ -96,7 +96,8 @@ export async function POST(req: NextRequest) {
         projectId: body.projectId,
         resourceId: r.id,
         eventType: "resource_created",
-        description: `${r.name} imported from .env`,
+        actor: "env-import",
+        description: `${r.name} imported into ${project.name} from .env — placeholder API integration`,
         metadata: { source: "env_import" },
       }))
     );

@@ -48,6 +48,13 @@ export async function GET(req: NextRequest) {
       .filter((r) => r.lifecycleState === "deprecated" || r.lifecycleState === "archived")
       .sort((a, b) => a.name.localeCompare(b.name));
 
+    const continuityRisk = all
+      .filter(
+        (r) =>
+          r.lifecycleState === "active" && (!r.owner || r.owner.trim() === "")
+      )
+      .sort((a, b) => (b.monthlyCost ?? 0) - (a.monthlyCost ?? 0));
+
     const spendByCategory: Record<string, number> = {};
     for (const r of all) {
       if (r.lifecycleState === "archived") continue;
@@ -61,6 +68,7 @@ export async function GET(req: NextRequest) {
       byLifecycle,
       upcomingRenewals,
       inactiveVendors,
+      continuityRisk,
       spendByCategory,
       currency: all[0]?.currency ?? "USD",
     });

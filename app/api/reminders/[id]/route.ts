@@ -12,7 +12,16 @@ const patchSchema = z.object({
   message: z.string().max(500).optional().nullable(),
   severity: z.enum(["critical", "high", "medium", "low"]).optional(),
   triggerDate: z.string().optional(),
+  actor: z.string().max(100).optional(),
 });
+
+const REMINDER_TYPE_LABEL: Record<string, string> = {
+  renewal: "Renewal",
+  trial_expiration: "Trial expiration",
+  ownership_review: "Ownership review",
+  lifecycle_review: "Lifecycle review",
+  custom: "Custom",
+};
 
 export async function PATCH(req: NextRequest, ctx: Ctx) {
   try {
@@ -45,13 +54,21 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
         .where(eq(resources.id, existing.resourceId))
         .limit(1);
       if (resource) {
+        const typeLabel =
+          REMINDER_TYPE_LABEL[existing.reminderType] ?? existing.reminderType;
+        const actor = body.actor?.trim() || "user";
         await db.insert(operationalEvents).values({
           workspaceId: resource.workspaceId,
           projectId: resource.projectId,
           resourceId: resource.id,
           eventType: "lifecycle_changed",
-          description: `Reminder acknowledged · ${resource.name}`,
-          metadata: { reminderId: existing.id, reminderType: existing.reminderType },
+          actor,
+          description: `${typeLabel} reminder for ${resource.name} acknowledged by ${actor}`,
+          metadata: {
+            reminderId: existing.id,
+            reminderType: existing.reminderType,
+            severity: existing.severity,
+          },
         });
       }
     }

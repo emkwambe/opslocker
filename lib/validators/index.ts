@@ -47,6 +47,8 @@ export const createResourceSchema = z.object({
   tags: z.array(z.string()).default([]),
   website: z.string().optional().nullable(),
   documentationUrl: z.string().optional().nullable(),
+  lastReviewedAt: z.string().optional().nullable(),
+  operationalHealth: z.string().optional().nullable(),
   projectId: z.string().min(1),
   workspaceId: z.string().min(1),
 });

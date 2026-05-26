@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
-import { desc, eq } from "drizzle-orm";
-import { getDb } from "@/lib/db/client";
-import { projects, resources } from "@/lib/schema";
-import { getDefaultWorkspace } from "@/lib/db/queries";
+import {
+  getDefaultWorkspace,
+  getWorkspaceProjects,
+  getWorkspaceResources,
+} from "@/lib/db/queries";
 import { RegistryView } from "@/components/registry/registry-view";
 
 export const dynamic = "force-dynamic";
@@ -10,19 +11,12 @@ export const dynamic = "force-dynamic";
 export default async function RegistryPage() {
   const workspace = await getDefaultWorkspace();
   if (!workspace) redirect("/setup");
-  const db = getDb();
-  const [resourceRows, projectRows] = await Promise.all([
-    db
-      .select()
-      .from(resources)
-      .where(eq(resources.workspaceId, workspace.id))
-      .orderBy(desc(resources.updatedAt)),
-    db
-      .select({ id: projects.id, name: projects.name })
-      .from(projects)
-      .where(eq(projects.workspaceId, workspace.id))
-      .orderBy(projects.name),
+
+  const [resourceRows, allProjects] = await Promise.all([
+    getWorkspaceResources(workspace.id),
+    getWorkspaceProjects(workspace.id),
   ]);
+  const projectRows = allProjects.map((p) => ({ id: p.id, name: p.name }));
 
   return (
     <div className="space-y-5 max-w-7xl">

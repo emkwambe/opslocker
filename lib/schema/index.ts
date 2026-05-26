@@ -41,6 +41,8 @@ export const resources = sqliteTable("resources", {
   tags: text("tags", { mode: "json" }).$type<string[]>().default([]),
   website: text("website"),
   documentationUrl: text("documentation_url"),
+  lastReviewedAt: text("last_reviewed_at"),
+  operationalHealth: text("operational_health"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
   updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
